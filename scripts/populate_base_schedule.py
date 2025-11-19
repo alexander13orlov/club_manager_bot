@@ -4,7 +4,7 @@ import sqlite3
 from core.models.schedule import BaseScheduleTemplate
 from core.repositories.schedule_repo import BaseScheduleTemplateRepo
 
-conn = sqlite3.connect("data/club.db")
+conn = sqlite3.connect("data/club_schedule.db")
 repo = BaseScheduleTemplateRepo(conn)
 
 # пример базового расписания
@@ -14,7 +14,7 @@ templates = [
         weekday=0,  # понедельник
         start_time=time(20,0),
         duration_minutes=90,
-        trainer_id=101,
+        trainer_id=84324980,
         place="Малый зал",
         training_type="Рапира",
     ),
@@ -24,7 +24,7 @@ templates = [
         weekday=1,  # вторник
         start_time=time(20,0),
         duration_minutes=90,
-        trainer_id=102,
+        trainer_id=566078997,
         place="Малый зал",
         training_type="Сабля",
     ),
@@ -33,7 +33,7 @@ templates = [
         weekday=3,  # чт
         start_time=time(20,0),
         duration_minutes=90,
-        trainer_id=102,
+        trainer_id=566078997,
         place="Малый зал",
         training_type="Сабля",
     ),
@@ -51,7 +51,7 @@ templates = [
         weekday=6,  # вс
         start_time=time(14,0),
         duration_minutes=120,
-        trainer_id=101,
+        trainer_id=84324980,
         place="Малый зал",
         training_type="Самоподготовка",
     ),
