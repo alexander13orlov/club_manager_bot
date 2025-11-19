@@ -1,0 +1,24 @@
+# Virtual environment
+venv/
+.env
+*.pyc
+*.pyd
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+logs/
+*.log
+*.sqlite3
+
+# Local data
+data/
+settings.json
+polls_history.json
