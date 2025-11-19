@@ -13,3 +13,6 @@ class User:
     gender: str | None = None
     phone: str | None = None
     email: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    

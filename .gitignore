@@ -20,5 +20,4 @@ logs/
 
 # Local data
 data/
-settings.json
-polls_history.json
+

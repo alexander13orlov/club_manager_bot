@@ -1,4 +1,5 @@
-﻿import asyncio
+﻿# main.py
+import asyncio
 import logging
 from telegram.bot import bot, dp
 from telegram.handlers.registration import register_registration_handlers
@@ -18,7 +19,7 @@ file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"))
 logging.getLogger().addHandler(file_handler)
 logging.getLogger("aiogram").setLevel(logging.DEBUG)
-logging.getLogger("aiohttp").setLevel(logging.WARNING)  # можно уменьшить уровень aiohttp
+logging.getLogger("aiohttp").setLevel(logging.WARNING)
 
 # -------------------- Main --------------------
 async def main():
@@ -26,22 +27,22 @@ async def main():
     user_repo = await UserRepository.create(str(USERS_FILE))
     user_service = UserService(user_repo)
 
-    # подключаем middleware (авто-регистрация)
+    # middleware: автоматическая регистрация пользователей
     dp.message.middleware(UserRegistrationMiddleware(user_service))
 
-    # Регистрируем обработчики регистрации пользователей
+    # регистрируем FSM-обработчики регистрации
     register_registration_handlers(dp, user_service)
 
-    # Регистрируем остальные роутеры
+    # регистрируем остальные роутеры, включая admin
     register_routers(dp, user_service=user_service)
 
-    # Запуск polling
+    # запуск polling
     try:
         await dp.start_polling(bot)
     except KeyboardInterrupt:
         logging.info("Bot stopped by KeyboardInterrupt")
     finally:
-        # гарантированно закрываем ресурсы
+        # закрываем ресурсы
         try:
             await user_repo.close()
         except Exception as e:
@@ -49,7 +50,6 @@ async def main():
         try:
             await bot.session.close()
         except Exception:
-            # старые версии aiogram могут не иметь bot.session
             pass
 
 # -------------------- Entry point --------------------

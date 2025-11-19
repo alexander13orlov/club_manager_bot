@@ -1,6 +1,6 @@
-﻿# Bot Project
+﻿# Project
 
-Generated scaffold with modules for:
+Scaffold with modules for:
 - polls
 - users
 - schedule
@@ -9,5 +9,3 @@ Generated scaffold with modules for:
 - services
 - telegram handlers
 - background tasks
-
-To start:

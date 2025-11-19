@@ -4,13 +4,17 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Загружаем .env
-load_dotenv()
+# load_dotenv()
 
 # Корневой путь проекта
 BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
 
 # Telegram Bot Token
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+# Список admin user_ids
+ADMINS = [int(x) for x in os.getenv("ADMINS", "").split(",") if x.strip()]
+
 
 # Пути к файлам хранения
 DATA_DIR = BASE_DIR / "data"

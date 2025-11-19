@@ -1,8 +1,8 @@
 # telegram/middlewares/user_registration.py
 from aiogram import BaseMiddleware
 from typing import Callable, Awaitable, Dict, Any
-
 from core.services.user_service import UserService
+
 
 class UserRegistrationMiddleware(BaseMiddleware):
     def __init__(self, user_service: UserService):
@@ -15,8 +15,11 @@ class UserRegistrationMiddleware(BaseMiddleware):
         event: Any,
         data: Dict[str, Any],
     ) -> Any:
+
         tg_user = getattr(event, "from_user", None)
+
         if tg_user:
-            # Асинхронная регистрация
+            # Автоматическая регистрация + авто-синхронизация имени/юзернейма
             await self.user_service.register_if_needed(tg_user)
+
         return await handler(event, data)
