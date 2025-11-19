@@ -1,6 +1,12 @@
 ﻿# core/services/user_service.py
 from core.models.user import User
 from core.repositories.user_repo import UserRepository
+from datetime import datetime, timezone
+
+
+def utc_now_iso() -> str:
+    """Текущее время UTC в формате ISO 8601 с зоной +00:00."""
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 class UserService:
@@ -8,60 +14,32 @@ class UserService:
 
     def __init__(self, repo: UserRepository):
         self.repo = repo
-    
-    async def get_all_users(self):
-        """Вернуть список всех пользователей."""
-        return await self.repo.get_all_users()
 
-    # ------------------- REGISTRATION -------------------
+    async def get_all_users(self):
+        """Вернуть список всех пользователей, отсортированных по fio, full_name, username."""
+        return await self.repo.get_all_users()
 
     async def register_if_needed(self, tg_user):
         """
-        Автоматическая регистрация.
-        Only inserts if user does not exist.
+        Автоматическая регистрация (только Telegram поля).
+        При первой регистрации created_at выставляется автоматически.
         """
-
         existing = await self.repo.get(tg_user.id)
-
         if existing:
-            # Пользователь был зарегистрирован, просто синхронизируем
-            return await self.refresh_telegram_fields(existing, tg_user)
+            return existing
 
-        # Создаём нового пользователя — timestamps создаст SQLite
+        now = utc_now_iso()
         user = User(
             user_id=tg_user.id,
             username=tg_user.username,
             full_name=tg_user.full_name,
+            created_at=now,
+            updated_at=now
         )
 
+        # В repo.upsert автоматически обновится created_at/updated_at при вставке
         await self.repo.upsert(user)
         return user
-
-    async def refresh_telegram_fields(self, existing: User, tg_user):
-        """
-        Обновляет username / full_name, если они изменились в Telegram.
-        Это вызывает обновление updated_at в БД.
-        """
-
-        changed = False
-
-        username = tg_user.username or None
-        full_name = tg_user.full_name or None
-
-        if existing.username != username:
-            existing.username = username
-            changed = True
-
-        if existing.full_name != full_name:
-            existing.full_name = full_name
-            changed = True
-
-        if changed:
-            await self.repo.upsert(existing)
-
-        return existing
-
-    # ------------------- EXTRA FIELDS -------------------
 
     async def update_extra_info(
         self,
@@ -73,16 +51,21 @@ class UserService:
         email: str | None = None
     ):
         """
-        Обновляет дополнительные пользовательские поля.
-        updated_at ставится автоматически в repo.update_extra().
+        Добровольная дополнительная регистрация.
+        Обновляет поля и автоматически обновляет updated_at.
         """
+        now = utc_now_iso()
+        # Обновляем только переданные поля
+        fields_to_update = {
+            "fio": fio,
+            "birth_date": birth_date,
+            "gender": gender,
+            "phone": phone,
+            "email": email,
+            "updated_at": now
+        }
+        # Удаляем поля, которые None
+        fields_to_update = {k: v for k, v in fields_to_update.items() if v is not None}
 
-        await self.repo.update_extra(
-            user_id=user_id,
-            fio=fio,
-            birth_date=birth_date,
-            gender=gender,
-            phone=phone,
-            email=email
-        )
-
+        if fields_to_update:
+            await self.repo.update_extra(user_id=user_id, **fields_to_update)
