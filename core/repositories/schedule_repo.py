@@ -1,5 +1,4 @@
 ﻿# core/repositories/schedule_repo.py
-
 import json
 import sqlite3
 from datetime import datetime, date, time
@@ -90,6 +89,9 @@ class BaseScheduleTemplateRepo:
         ]
 
 
+# ---------------------------------------------------------
+# TrainingInstanceRepo
+# ---------------------------------------------------------
 
 class TrainingInstanceRepo:
     def __init__(self, conn: sqlite3.Connection):
@@ -142,6 +144,32 @@ class TrainingInstanceRepo:
             for row in rows
         ]
 
+    def get_by_id(self, inst_id: int) -> Optional[TrainingInstance]:
+        """Получить конкретное занятие по ID"""
+        cur = self.conn.cursor()
+        row = cur.execute("""
+            SELECT id, date, start_time, duration_minutes, trainer_id, place, training_type,
+                   source_template_id, status, comment
+            FROM training_instances
+            WHERE id=?
+        """, (inst_id,)).fetchone()
+
+        if not row:
+            return None
+
+        return TrainingInstance(
+            id=row[0],
+            date=parse_date(row[1]),
+            start_time=parse_time(row[2]),
+            duration_minutes=row[3],
+            trainer_id=row[4],
+            place=row[5],
+            training_type=row[6],
+            source_template_id=row[7],
+            status=row[8],
+            comment=row[9],
+        )
+
     def update(self, inst: TrainingInstance):
         cur = self.conn.cursor()
         cur.execute("""
@@ -164,6 +192,10 @@ class TrainingInstanceRepo:
         self.conn.commit()
 
 
+# ---------------------------------------------------------
+# ScheduleChangeLogRepo
+# ---------------------------------------------------------
+
 class ScheduleChangeLogRepo:
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
@@ -180,8 +212,8 @@ class ScheduleChangeLogRepo:
                 log.training_id,
                 log.admin_user_id,
                 log.change_type,
-                json.dumps(log.old_value) if log.old_value else None,
-                json.dumps(log.new_value) if log.new_value else None,
+                json.dumps(log.old_value, default=str) if log.old_value else None,
+                json.dumps(log.new_value, default=str) if log.new_value else None,
                 log.timestamp.isoformat(),
             ),
         )
